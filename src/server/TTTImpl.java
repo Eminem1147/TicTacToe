@@ -16,6 +16,18 @@ public class TTTImpl extends UnicastRemoteObject implements TTT {
 		playerID = 0;
 	}
 
+	// 检查用户名是否用过
+	@Override
+	public boolean checkName(String name) throws RemoteException {
+		int size = players.size();
+		for(int i = 0; i < size; i++) {
+			if(players.get(i).getName().equals(name)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	@Override
 	public void setPlayerInfo(String name) throws RemoteException {
 		Player player = new Player();
@@ -30,6 +42,7 @@ public class TTTImpl extends UnicastRemoteObject implements TTT {
 		players.add(player);
 	}
 	
+	// 为了能正确使用get方法，需要覆盖Player的equals方法
 	public int getIndexById(int id) {
 		int size = players.size();
 		for(int i = 0; i < size; i++) {

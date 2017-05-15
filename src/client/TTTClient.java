@@ -21,6 +21,7 @@ public class TTTClient {
 			ttt = (TTT)Naming.lookup("rmi://localhost:8888/TTT"); ////////////改
 			
 			player = new Player();
+			new LoginWindow(ttt);
 			// 设置名字
 			sc = new Scanner(System.in);
 			player.setName(sc.next());
@@ -74,7 +75,7 @@ public class TTTClient {
 					if(player.getFlag()) {
 						int move = sc.nextInt();
 						if(checkOK(move)) {
-							// 判断自己是不是赢了，在send出去之前判断
+							// 判断自己是不是赢了，在send出去之前判断，但是不能break，要发送给那个失败的人
 							boolean flag = checkIsWin(player.getChess(), player.getType(), move); // 赢了就要退出
 							if(flag) {
 								System.out.println("You Win!");
