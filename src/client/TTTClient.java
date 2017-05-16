@@ -20,12 +20,12 @@ public class TTTClient {
 		try {
 			ttt = (TTT)Naming.lookup("rmi://localhost:8888/TTT"); ////////////改
 			
-			player = new Player();
+			player = new Player();////////shan
 			new LoginWindow(ttt);
 			// 设置名字
-			sc = new Scanner(System.in);
-			player.setName(sc.next());
-			ttt.setPlayerInfo(player.getName());
+			sc = new Scanner(System.in);////////shan
+			player.setName(sc.next());////////shan
+			ttt.setPlayerInfo(player.getName());////////shan
 			
 			// 寻找对手
 			ttt.searchFor(player.getName());

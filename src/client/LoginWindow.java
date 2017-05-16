@@ -8,6 +8,9 @@ import java.awt.Image;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
 import javax.swing.ImageIcon;
@@ -16,6 +19,7 @@ import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
+import server.Player;
 import server.TTT;
 
 /*
@@ -23,6 +27,10 @@ import server.TTT;
  */
 public class LoginWindow implements ActionListener {
 	
+	// RMI的各种变量
+	public Player player;
+	
+	// Swing的各种变量
 	private JFrame jf;
 	private Container con;
 	private TextField name;
@@ -53,7 +61,8 @@ public class LoginWindow implements ActionListener {
 		_name.setFont(new Font("宋体", Font.BOLD, 20));
 		panel2.add(_name);
 		
-		name = new TextField(20);
+		// 限制十个字符
+		name = new TextField(10);
 		panel2.add(name);
 		
 		register = new JButton("注册");
@@ -70,7 +79,7 @@ public class LoginWindow implements ActionListener {
 		con.add(panel3);
 		
 		JPanel panel4 = new JPanel();
-		login = new JButton("登录系统");
+		login = new JButton("搜寻对手");
 		login.setFont(new Font("宋体", Font.BOLD, 22));
 		panel4.add(login);
 		// 一开始设置成不可以点击
@@ -82,13 +91,14 @@ public class LoginWindow implements ActionListener {
 		con.add(panel4);
 
 		jf.setTitle("三子棋登录界面");
-		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		jf.setResizable(true);
-		jf.setVisible(true);
-		
+		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		
 		jf.setSize(600, 400);
 		jf.setLocation(400, 200);
-		
+		jf.setResizable(true);
+		jf.setVisible(true);
+
+		// ------------------RMI相关代码---------------------
+		player = new Player();
 	}
 
 	// 监听事件
@@ -97,29 +107,43 @@ public class LoginWindow implements ActionListener {
 		String source = e.getActionCommand();
 		if(source.equals("注册")) {
 			try {
-				// 名字可用
-				if(ttt.checkName(name.getText())) {
-					login.setEnabled(true);
-					ImageIcon icon = new ImageIcon(getClass().getResource("/img/correct.jpg"));
-					icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
-			        judge.setIcon(icon);
-				} else {
+				// 检查名字是否冲突，调用远程setPlayerInfo接口（要考虑为空的情况）
+				// 同时要记得去除文本框前面和后面的空格，所以trim()
+				if(name.getText().trim().equals("")||!ttt.setPlayerInfo(name.getText().trim())) {
 					name.setText("");
-					// 有问题！！！！！！！！！
-					ImageIcon icon = new ImageIcon(getClass().getResource("/img/wrong.jpg"));
+					ImageIcon icon = new ImageIcon(getClass().getResource("/image/wrong.jpg"));
 					icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
 			        judge.setIcon(icon);
+				} else { // 用户名可用
+					login.setEnabled(true);
+					ImageIcon icon = new ImageIcon(getClass().getResource("/image/correct.jpg"));
+					icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
+			        judge.setIcon(icon);
+			        // 成功了文本框和注册按钮就不可编辑!!!!!!!!!
+			        register.setEnabled(false);
+			        name.setEnabled(false);
+			        // 成功了之后设置player和远程对象
+			        player.setName(name.getText().trim());
+			        System.out.println(player.getName());
+			        ttt.setPlayerInfo(player.getName());
 				}
 			} catch (RemoteException e1) {
 				e1.printStackTrace();
 			}
-		} else if(source.equals("登陆系统")) {
-			
+		} else if(source.equals("搜寻对手")) {
+			login.setText("正在搜寻对手");
+			login.setEnabled(false);
+			ImageIcon icon = new ImageIcon(getClass().getResource("/image/wait.png"));
+			icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
+	        judge.setIcon(icon);
+	        
+//	        new GameWindow(ttt, player.getName());
+	        // 这个界面关闭！！！！！！！！！！！！
 		}
 	}
 	
-//	public static void main(String[] args) {
-//		new LoginWindow();
-//	}
+	public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException {
+		new LoginWindow((TTT)Naming.lookup("rmi://localhost:8888/TTT"));
+	}
 
 }
