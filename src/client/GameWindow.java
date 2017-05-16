@@ -20,7 +20,7 @@ public class GameWindow {
 	private JLabel _score, myScore, hisScore, vs;
 	private JLabel _first, first;
 	private JButton newGame;
-	private JButton exit; ///////////////////一个退出，另一个怎么办
+	private JButton exit; ///////////////////一个退出，另一个怎么办。label变颜色!!!!!!!
 	private JLabel dtv;
 	
 	public GameWindow() {
@@ -87,15 +87,79 @@ public class GameWindow {
 		dtv.setBounds(500, 340, 120, 50);
 		jf.add(dtv);
 		
-		System.out.println(System.getProperty("java.class.path")); 
-		ImageIcon icon = new ImageIcon(getClass().getResource("/image/wrong.jpg"));
-		icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
-        b1.setIcon(icon);
+		b1 = new JButton();
+		changeO(b1);
 		b1.setBounds(20, 20, 100, 100);
 		// 设置无边框
-//		b1.setBorderPainted(false);
-//		b1.setBackground(Color.WHITE);
+		b1.setBorderPainted(false);
+		b1.setBackground(Color.WHITE);
 		jf.add(b1);
+		
+		b2 = new JButton();
+		changeX(b2);
+		b2.setBounds(130, 20, 100, 100);
+		// 设置无边框
+		b2.setBorderPainted(false);
+		b2.setBackground(Color.WHITE);
+		jf.add(b2);
+		
+		b3 = new JButton();
+		changeO(b3);
+		b3.setBounds(240, 20, 100, 100);
+		// 设置无边框
+		b3.setBorderPainted(false);
+		b3.setBackground(Color.WHITE);
+		jf.add(b3);
+		
+		b4 = new JButton();
+		changeX(b4);
+		b4.setBounds(20, 130, 100, 100);
+		// 设置无边框
+		b4.setBorderPainted(false);
+		b4.setBackground(Color.WHITE);
+		jf.add(b4);
+		
+		b5 = new JButton();
+		changeO(b5);
+		b5.setBounds(130, 130, 100, 100);
+		// 设置无边框
+		b5.setBorderPainted(false);
+		b5.setBackground(Color.WHITE);
+		jf.add(b5);
+		
+		b6 = new JButton();
+		changeX(b6);
+		b6.setBounds(240, 130, 100, 100);
+		// 设置无边框
+		b6.setBorderPainted(false);
+		b6.setBackground(Color.WHITE);
+		jf.add(b6);
+		
+		b7 = new JButton();
+		changeO(b7);
+		b7.setBounds(20, 240, 100, 100);
+		// 设置无边框
+		b7.setBorderPainted(false);
+		b7.setBackground(Color.WHITE);
+		jf.add(b7);
+		
+		b8 = new JButton();
+		changeX(b8);
+		b8.setBounds(130, 240, 100, 100);
+		// 设置无边框
+		b8.setBorderPainted(false);
+		b8.setBackground(Color.WHITE);
+		jf.add(b8);
+		
+		b9 = new JButton();
+		changeO(b9);
+		b9.setBounds(240, 240, 100, 100);
+		// 设置无边框
+		b9.setBorderPainted(false);
+		b9.setBackground(Color.WHITE);
+		jf.add(b9);
+		
+		// 需要一个label显示当前是否能下棋
 		
 		jf.setTitle("游戏界面");
 		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -104,6 +168,18 @@ public class GameWindow {
 		jf.setResizable(false);
 		jf.setVisible(true);
 		
+	}
+	
+	// JButton改变显示
+	public void changeO(JButton button) {
+		ImageIcon icon = new ImageIcon(getClass().getResource("/img/o.png"));
+		icon.setImage(icon.getImage().getScaledInstance(100, 100, Image.SCALE_DEFAULT));
+        button.setIcon(icon);
+	}
+	public void changeX(JButton button) {
+		ImageIcon icon = new ImageIcon(getClass().getResource("/img/x.png"));
+		icon.setImage(icon.getImage().getScaledInstance(100, 100, Image.SCALE_DEFAULT));
+        button.setIcon(icon);
 	}
 
 	public static void main(String[] args) {

@@ -111,12 +111,12 @@ public class LoginWindow implements ActionListener {
 				// 同时要记得去除文本框前面和后面的空格，所以trim()
 				if(name.getText().trim().equals("")||!ttt.setPlayerInfo(name.getText().trim())) {
 					name.setText("");
-					ImageIcon icon = new ImageIcon(getClass().getResource("/image/wrong.jpg"));
+					ImageIcon icon = new ImageIcon(getClass().getResource("/img/wrong.jpg"));
 					icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
 			        judge.setIcon(icon);
 				} else { // 用户名可用
 					login.setEnabled(true);
-					ImageIcon icon = new ImageIcon(getClass().getResource("/image/correct.jpg"));
+					ImageIcon icon = new ImageIcon(getClass().getResource("/img/correct.jpg"));
 					icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
 			        judge.setIcon(icon);
 			        // 成功了文本框和注册按钮就不可编辑!!!!!!!!!
@@ -133,7 +133,7 @@ public class LoginWindow implements ActionListener {
 		} else if(source.equals("搜寻对手")) {
 			login.setText("正在搜寻对手");
 			login.setEnabled(false);
-			ImageIcon icon = new ImageIcon(getClass().getResource("/image/wait.png"));
+			ImageIcon icon = new ImageIcon(getClass().getResource("/img/wait.png"));
 			icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
 	        judge.setIcon(icon);
 	        
