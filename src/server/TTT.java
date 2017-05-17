@@ -5,6 +5,8 @@ import java.rmi.RemoteException;
 
 public interface TTT extends Remote {
 	
+	public boolean checkName(String name) throws RemoteException;
+	
 	public boolean setPlayerInfo(String name) throws RemoteException;
 
 	public Player getPlayer(String name) throws RemoteException;

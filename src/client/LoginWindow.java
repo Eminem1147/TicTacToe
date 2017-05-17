@@ -8,9 +8,6 @@ import java.awt.Image;
 import java.awt.TextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.net.MalformedURLException;
-import java.rmi.Naming;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 
 import javax.swing.ImageIcon;
@@ -23,19 +20,19 @@ import server.Player;
 import server.TTT;
 
 /*
- * 登录界面
+ * 登录界面//////////////////////注册完直接关
  */
 public class LoginWindow implements ActionListener {
 	
 	// RMI的各种变量
 	public Player player;
+	public TTT ttt;
 	
 	// Swing的各种变量
 	private JFrame jf;
 	private Container con;
 	private TextField name;
 	private JButton register, login;
-	private TTT ttt;
 	private JLabel judge;
 
 	public LoginWindow(TTT ttt) {
@@ -104,46 +101,74 @@ public class LoginWindow implements ActionListener {
 	// 监听事件
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		String source = e.getActionCommand();
-		if(source.equals("注册")) {
+		if(e.getSource() == register) {
 			try {
-				// 检查名字是否冲突，调用远程setPlayerInfo接口（要考虑为空的情况）
+				// 检查名字是否冲突，调用远程checkName接口（要考虑为空的情况）
 				// 同时要记得去除文本框前面和后面的空格，所以trim()
-				if(name.getText().trim().equals("")||!ttt.setPlayerInfo(name.getText().trim())) {
+				if(name.getText().trim().equals("")||!ttt.checkName(name.getText().trim())) {
 					name.setText("");
 					ImageIcon icon = new ImageIcon(getClass().getResource("/img/wrong.jpg"));
 					icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
 			        judge.setIcon(icon);
 				} else { // 用户名可用
-					login.setEnabled(true);
 					ImageIcon icon = new ImageIcon(getClass().getResource("/img/correct.jpg"));
 					icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
 			        judge.setIcon(icon);
 			        // 成功了文本框和注册按钮就不可编辑!!!!!!!!!
 			        register.setEnabled(false);
 			        name.setEnabled(false);
-			        // 成功了之后设置player和远程对象
-			        player.setName(name.getText().trim());
-			        System.out.println(player.getName());
-			        ttt.setPlayerInfo(player.getName());
+					login.setEnabled(true);
 				}
 			} catch (RemoteException e1) {
 				e1.printStackTrace();
 			}
-		} else if(source.equals("搜寻对手")) {
+		} else if(e.getSource() == login) {
+			
+	        // 成功了之后设置player和远程对象
+	        player.setName(name.getText().trim());
+	        System.out.println(player.getName());
+	        // 在这里才能向服务器申请!!!!!!!!!!!!!!
+	        try {
+				ttt.setPlayerInfo(player.getName());
+			} catch (RemoteException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+
+			// 有问题！！！！！！！！！！！！！！
 			login.setText("正在搜寻对手");
 			login.setEnabled(false);
 			ImageIcon icon = new ImageIcon(getClass().getResource("/img/wait.png"));
 			icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
 	        judge.setIcon(icon);
+	        ////////////////////////////////////
 	        
-//	        new GameWindow(ttt, player.getName());
-	        // 这个界面关闭！！！！！！！！！！！！
+	        try {
+	        	// 寻找对手
+				ttt.searchFor(player.getName());
+				// 更新player
+				player = ttt.getPlayer(player.getName());
+				
+				// 测试
+				System.out.println("我的ID：" + player.getId());
+				System.out.println("我的Name：" + player.getName());
+				System.out.println("我的EnemyID：" + player.getEnemyId());
+				System.out.println("我的Type：" + player.getType());
+				System.out.println("我的Flag：" + player.getFlag());
+	        	
+				// 当前界面隐藏
+				jf.setVisible(false);
+				
+				new GameWindow(this);
+				
+			} catch (RemoteException | InterruptedException e1) {
+				e1.printStackTrace();
+			}
 		}
 	}
 	
-	public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException {
-		new LoginWindow((TTT)Naming.lookup("rmi://localhost:8888/TTT"));
-	}
+//	public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException {
+//		new LoginWindow((TTT)Naming.lookup("rmi://localhost:8888/TTT"));
+//	}
 
 }

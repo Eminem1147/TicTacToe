@@ -17,6 +17,7 @@ public class TTTImpl extends UnicastRemoteObject implements TTT {
 	}
 
 	// 检查用户名是否用过
+	@Override
 	public boolean checkName(String name) {
 		int size = players.size();
 		for(int i = 0; i < size; i++) {
@@ -30,9 +31,6 @@ public class TTTImpl extends UnicastRemoteObject implements TTT {
 
 	@Override
 	public boolean setPlayerInfo(String name) throws RemoteException {
-		// 名字不合格
-		if(!checkName(name)) return false;
-		
 		Player player = new Player();
 		player.setName(name);
 		player.setId(++playerID);
