@@ -40,6 +40,7 @@ public class TTTImpl extends UnicastRemoteObject implements TTT {
 		int chess[] = new int[10];
 		for(int i = 1; i <= 9; i++) chess[i] = -1;
 		player.setChess(chess);
+		player.setNewGame(false);
 		players.add(player);
 		return true;
 	}
@@ -72,7 +73,7 @@ public class TTTImpl extends UnicastRemoteObject implements TTT {
 		return players.get(getIndex(name));
 	}
 
-	// 寻找对手
+	// 寻找对手，服务器端最重要的两个函数
 	@Override
 	public void searchFor(String name) throws RemoteException, InterruptedException {
 		while(true) {
@@ -133,14 +134,44 @@ public class TTTImpl extends UnicastRemoteObject implements TTT {
 				// 释放锁
 				players.get(index).setFlag(false);
 				players.get(enemy).setFlag(true);
-				
-				// 输出棋盘
-				for(int i = 1; i <= 9; i++) {
-					System.out.print(chess[i] + " ");
-				}
-				System.out.println();
-				
 				break;
+			}
+		}
+	}
+
+	@Override
+	public void sendNewGame(String name) throws RemoteException {
+		System.out.println("newGame-----------------");
+		int index = getIndex(name);
+		players.get(index).setNewGame(true);
+	}
+
+	// 交换先后手，顺便全部重新初始化
+	// 输的人下一把先手
+	//////////////////////////////////////////////比分在这里改
+	@Override
+	public void changeFirst(String name, boolean flag) throws RemoteException {
+		System.out.println("changeFirst-----------------");
+		// 一个人发送了，另一个人怎么办
+		while(true) {
+			int index = getIndex(name);
+			int enemyIndex = players.get(index).getEnemyId();
+			// 要等待另一个人也点击开始新的游戏按钮
+			if(players.get(enemyIndex).getNewGame()) {
+				if(flag) {
+					players.get(index).setFlag(false);
+					players.get(enemyIndex).setFlag(true);
+				} else {
+					players.get(index).setFlag(true);
+					players.get(enemyIndex).setFlag(false);
+				}
+				// 棋盘初始化
+				int _chess[] = new int[10];
+				for(int i = 1; i <= 9; i++) {
+					_chess[i] = -1;
+				}
+				players.get(index).setChess(_chess);
+				players.get(enemyIndex).setChess(_chess);
 			}
 		}
 	}

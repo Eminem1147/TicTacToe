@@ -16,7 +16,7 @@ public class TTTServer {
 
 			LocateRegistry.createRegistry(8888);
 
-			Naming.bind("rmi://localhost:8888/TTT", tttGame);//////////////////////
+			Naming.bind("rmi://localhost:8888/TTT", tttGame);//////////////////////改
 
 			System.out.println("TTT server ready");
 

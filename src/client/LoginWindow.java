@@ -20,13 +20,14 @@ import server.Player;
 import server.TTT;
 
 /*
- * 登录界面//////////////////////注册完直接关
+ * 登录界面
  */
 public class LoginWindow implements ActionListener {
 	
 	// RMI的各种变量
 	public Player player;
 	public TTT ttt;
+	private LoginWindow lg;
 	
 	// Swing的各种变量
 	private JFrame jf;
@@ -38,6 +39,8 @@ public class LoginWindow implements ActionListener {
 	public LoginWindow(TTT ttt) {
 		// 传递服务器对象
 		this.ttt = ttt;
+		
+		this.lg = this;
 		
 		jf = new JFrame();
 		
@@ -124,46 +127,55 @@ public class LoginWindow implements ActionListener {
 			}
 		} else if(e.getSource() == login) {
 			
-	        // 成功了之后设置player和远程对象
-	        player.setName(name.getText().trim());
-	        System.out.println(player.getName());
-	        // 在这里才能向服务器申请!!!!!!!!!!!!!!
-	        try {
-				ttt.setPlayerInfo(player.getName());
-			} catch (RemoteException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
+			// 这一步很重要！！！！！！！！！！！！！！！
+			// 1.因为要多次刷新界面，所以需要多线程，否则界面会卡住!!!!!!!!!!!!!!!!!!!!
+			// 2.第二个界面的刷新问题也要依靠这个方法，否则整个界面都显示不出来!!!!!!!!!!!!!!!!!
+			// Swing的界面刷新是线程同步的（同一时间只有一个线程能执行刷新界面的代码）
+			new Thread(new Runnable() {
+	            @Override
+	            public void run() {
+	            	// 成功了之后设置player和远程对象
+	    	        player.setName(name.getText().trim());
+	    	        System.out.println(player.getName());
+	    	        // 在这里才能向服务器申请!!!!!!!!!!!!!!
+	    	        try {
+	    				ttt.setPlayerInfo(player.getName());
+	    			} catch (RemoteException e2) {
+	    				// TODO Auto-generated catch block
+	    				e2.printStackTrace();
+	    			}
 
-			// 有问题！！！！！！！！！！！！！！
-			login.setText("正在搜寻对手");
-			login.setEnabled(false);
-			ImageIcon icon = new ImageIcon(getClass().getResource("/img/wait.png"));
-			icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
-	        judge.setIcon(icon);
-	        ////////////////////////////////////
-	        
-	        try {
-	        	// 寻找对手
-				ttt.searchFor(player.getName());
-				// 更新player
-				player = ttt.getPlayer(player.getName());
-				
-				// 测试
-				System.out.println("我的ID：" + player.getId());
-				System.out.println("我的Name：" + player.getName());
-				System.out.println("我的EnemyID：" + player.getEnemyId());
-				System.out.println("我的Type：" + player.getType());
-				System.out.println("我的Flag：" + player.getFlag());
-	        	
-				// 当前界面隐藏
-				jf.setVisible(false);
-				
-				new GameWindow(this);
-				
-			} catch (RemoteException | InterruptedException e1) {
-				e1.printStackTrace();
-			}
+	    			login.setText("正在搜寻对手");
+	    			login.setEnabled(false);
+	    			ImageIcon icon = new ImageIcon(getClass().getResource("/img/wait.png"));
+	    			icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
+	    	        judge.setIcon(icon);
+	    	        
+	    	        try {
+	    	        	// 寻找对手
+	    				ttt.searchFor(player.getName());
+	    				// 更新player
+	    				player = ttt.getPlayer(player.getName());
+	    				
+	    				// 测试
+	    				System.out.println("我的ID：" + player.getId());
+	    				System.out.println("我的Name：" + player.getName());
+	    				System.out.println("我的EnemyID：" + player.getEnemyId());
+	    				System.out.println("我的Type：" + player.getType());
+	    				System.out.println("我的Flag：" + player.getFlag());
+	    	        	
+	    				// 当前界面隐藏
+	    				jf.setVisible(false);
+	    				
+	    				GameWindow gw = new GameWindow(lg);
+	    				gw.playAGame();
+	    				
+	    			} catch (RemoteException | InterruptedException e1) {
+	    				e1.printStackTrace();
+	    			}
+	            }
+	        }).start();
+			
 		}
 	}
 	

@@ -13,7 +13,13 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-//////////////////////退出后信息要删除
+//////////////////虚拟的对局;完全独立开发，没参考网上任何代码
+//////////////////////退出后信息要删除;和棋的情况（下满才平局）!!!!!!!!!!!
+/*
+ * 游戏界面
+ * 谁输了谁下一局就能先手
+ * 下棋速度不能太快！！！！！！！！！不然就有bug
+ */
 public class GameWindow implements ActionListener {
 	
 	// RMI
@@ -30,6 +36,8 @@ public class GameWindow implements ActionListener {
 	private JButton newGame;
 	private JButton exit; ///////////////////一个退出，另一个怎么办!!!!!!!
 	private JLabel dtv;
+	private JLabel _yourTurn, yourTurn;
+	private JLabel win;
 	
 	public GameWindow(LoginWindow lg) throws RemoteException, InterruptedException {
 		
@@ -74,14 +82,14 @@ public class GameWindow implements ActionListener {
 		hisScore.setBounds(510, 100, 120, 50);
 		jf.add(hisScore);
 		
-		_first = new JLabel("您当前的执棋先后：");
+		_first = new JLabel("您当前执的棋是：");
 		_first.setForeground(Color.RED);
 		_first.setFont(new Font("宋体", Font.BOLD, 18));
 		_first.setBounds(400, 140, 200, 50);
 		jf.add(_first);
 		
-		first = new JLabel("先手");
-		first.setFont(new Font("宋体", Font.BOLD, 20));
+		// 显示圈还是叉
+		first = new JLabel();
 		first.setBounds(450, 180, 200, 50);
 		jf.add(first);
 		
@@ -157,7 +165,25 @@ public class GameWindow implements ActionListener {
 			b[i].addActionListener(this);
 		}
 		
+		_yourTurn = new JLabel();
+		ImageIcon icon = new ImageIcon(getClass().getResource("/img/lightning.png"));
+		icon.setImage(icon.getImage().getScaledInstance(25, 25, Image.SCALE_DEFAULT));
+        _yourTurn.setIcon(icon);
+        _yourTurn.setBounds(26, 342, 40, 40);
+		jf.add(_yourTurn);
 		// 需要一个label显示当前是否能下棋
+		yourTurn = new JLabel();
+		yourTurn.setFont(new Font("宋体", Font.BOLD, 18));
+		yourTurn.setForeground(Color.RED);
+		yourTurn.setBounds(50, 340, 120, 50);
+		jf.add(yourTurn);
+		
+		win = new JLabel();
+		win.setFont(new Font("宋体", Font.BOLD, 18));
+		win.setForeground(Color.RED);
+		win.setBounds(240, 340, 120, 50);
+		jf.add(win);
+		
 		
 		jf.setTitle("游戏界面");
 		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -165,67 +191,79 @@ public class GameWindow implements ActionListener {
 		jf.setLocation(400, 200);
 		jf.setResizable(false);
 		jf.setVisible(true);
-
-		chess = new int[10];
-		playGame();
 		
 	}
 	
-	public void playGame() throws RemoteException, InterruptedException {
-		while(true) {
-			for(int i = 1; i <= 9; i++) chess[i] = -1;
-			for(int i = 1; i <= 9; i++) change(b[i]);
-			// 测试
-			System.out.println("我的ID：" + lg.player.getId());
-			System.out.println("我的Name：" + lg.player.getName());
-			System.out.println("我的EnemyID：" + lg.player.getEnemyId());
-			System.out.println("我的Type：" + lg.player.getType());
-			System.out.println("我的Flag：" + lg.player.getFlag());
-//			playAGame();
-		}
-	}
-	
+	// 核心代码
 	public void playAGame() throws RemoteException, InterruptedException {
+		
+		// 初始化代码
+		chess = new int[10];
+		for(int i = 1; i <= 9; i++) chess[i] = -1;
+		for(int i = 1; i <= 9; i++) change(b[i]);
+		yourTurn.setText("轮到对方下棋");
+		win.setText("");
+		newGame.setEnabled(false);
+		// 测试代码
+		System.out.println("我的ID：" + lg.player.getId());
+		System.out.println("我的Name：" + lg.player.getName());
+		System.out.println("我的EnemyID：" + lg.player.getEnemyId());
+		System.out.println("我的Type：" + lg.player.getType());
+		System.out.println("我的Flag：" + lg.player.getFlag());
 		
 		while(true) {
 			setNotClickable(); // 不可点击
 			lg.player = lg.ttt.getPlayer(lg.player.getName()); // 更新
+			// 初始化：圈还是叉
+			if(lg.player.getType() == 1) {
+				ImageIcon icon = new ImageIcon(getClass().getResource("/img/o.png"));
+				icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
+		        first.setIcon(icon);
+		        first.setBackground(Color.WHITE);
+			} else {
+				ImageIcon icon = new ImageIcon(getClass().getResource("/img/x.png"));
+				icon.setImage(icon.getImage().getScaledInstance(40, 40, Image.SCALE_DEFAULT));
+		        first.setIcon(icon);
+		        first.setBackground(Color.WHITE);
+			}
 			
 			if(lg.player.getFlag()) {
+				yourTurn.setText("轮到您下棋");
 				// 下之前先接收棋盘
 				lg.player.setChess(lg.ttt.receiveMove(lg.player.getName()));
 				chess = lg.player.getChess();
+				// 不能int _chess[] = chess，一个改变，另一个也改变了
+				int _chess[] = new int[10];
+				for(int i = 1; i <= 9; i++) _chess[i] = chess[i];
 				
 				refresh(); // 刷新
 				
 				// 判断自己是不是输了
 				if(checkIsLose(lg.player.getChess(), lg.player.getType())) {
-					System.out.println("You lose!");
+					// 输了！！！！！！！！！！！！！！
+					newGame.setEnabled(true);
+					win.setText("您输了！");
+					// 把输的人本地flag置为false（为了开始新的游戏而设置）
+					lg.player.setFlag(false);
+					// 不让他下棋了
+					setNotClickable();
 					return ;
 				}
-				
-				// 输出棋盘
-				for(int i = 1; i <= 9; i++) {
-					System.out.print(lg.player.getChess()[i] + " ");
-				}
-				System.out.println();
 				
 				// 下棋，读入需要合格所以才要while(true)
 				while(true) {
 					// 轮到他才能输入
 					lg.player = lg.ttt.getPlayer(lg.player.getName()); //更新
-					System.out.println("我的Flag：" + lg.player.getFlag());
 					if(lg.player.getFlag()) {
 						
-						int _chess[] = chess;
-						
+						// 很重要的一步，检测用户按了一个按钮，只能是一个按钮
 						setClickable(); // 可点击
-						int i = 1;
+						int move = 1;
 						// 只能点击一个按钮
 						while(true) {
 							boolean flag = false;
-							for(i = 1; i <= 9; i++) {
-								if(_chess[i] != chess[i]) {
+							for(move = 1; move <= 9; move++) {
+								if(_chess[move] != chess[move]) {
 									flag = true;
 									break;
 								}
@@ -233,19 +271,21 @@ public class GameWindow implements ActionListener {
 							if(flag) break;
 						}
 						setNotClickable(); // 不可点击
+
+						yourTurn.setText("轮到对方下棋");
 						
-						if(checkOK(i)) {
+						if(checkOK(move)) {
 							// 判断自己是不是赢了，在send出去之前判断，但是不能break，要发送给那个失败的人
-							boolean flag = checkIsWin(lg.player.getChess(), lg.player.getType(), i); // 赢了就要退出
+							boolean flag = checkIsWin(lg.player.getChess(), lg.player.getType(), move); // 赢了就要退出
 							chess = lg.ttt.getPlayer(lg.player.getName()).getChess();
 							if(flag) {
-								System.out.println("You Win!");
+								// 赢了！！！！！！！！！！！！！！
+								newGame.setEnabled(true);
+								win.setText("您赢了！");
 							}
-							lg.ttt.sendMove(lg.player.getName(), i);
+							lg.ttt.sendMove(lg.player.getName(), move);
 							if(flag) return ;
 							break;
-						} else {
-							System.out.println("读入不合法！");
 						}
 					}
 				}
@@ -300,7 +340,9 @@ public class GameWindow implements ActionListener {
 		   (chess[7]==type&&chess[8]==type&&chess[9]==type)||
 		   (chess[1]==type&&chess[4]==type&&chess[7]==type)||
 		   (chess[2]==type&&chess[5]==type&&chess[8]==type)||
-		   (chess[3]==type&&chess[6]==type&&chess[9]==type))
+		   (chess[3]==type&&chess[6]==type&&chess[9]==type)||
+		   (chess[1]==type&&chess[5]==type&&chess[9]==type)||
+		   (chess[3]==type&&chess[5]==type&&chess[7]==type))
 			return true;
 		else return false;
 	}
@@ -313,7 +355,9 @@ public class GameWindow implements ActionListener {
 		   (chess[7]==type&&chess[8]==type&&chess[9]==type)||
 		   (chess[1]==type&&chess[4]==type&&chess[7]==type)||
 		   (chess[2]==type&&chess[5]==type&&chess[8]==type)||
-		   (chess[3]==type&&chess[6]==type&&chess[9]==type))
+		   (chess[3]==type&&chess[6]==type&&chess[9]==type)||
+		   (chess[1]==type&&chess[5]==type&&chess[9]==type)||
+		   (chess[3]==type&&chess[5]==type&&chess[7]==type))
 			return true;
 		else return false;
 	}
@@ -335,6 +379,7 @@ public class GameWindow implements ActionListener {
 		ImageIcon icon = new ImageIcon(getClass().getResource("/img/x.png"));
 		icon.setImage(icon.getImage().getScaledInstance(100, 100, Image.SCALE_DEFAULT));
         button.setIcon(icon);
+        button.setBackground(Color.WHITE);
 	}
 
 	// 九宫格的监听事件
@@ -413,6 +458,27 @@ public class GameWindow implements ActionListener {
 			}
 			b[9].setEnabled(false);
 			chess[9] = lg.player.getType();
+		} else if(e.getSource() == newGame) {
+			System.out.println("1sadgasdgasfg");
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					// 开始了新的游戏
+					// 首先交换先后手顺序
+					try {
+						System.out.println("2sadgasdgasfg");
+						lg.ttt.sendNewGame(lg.player.getName());
+						lg.ttt.changeFirst(lg.player.getName(), lg.player.getFlag());
+						playAGame();
+					} catch (RemoteException e1) {
+						e1.printStackTrace();
+					} catch (InterruptedException e1) {
+						e1.printStackTrace();
+					}
+				}
+			}).start();
+		} else if(e.getSource() == exit) {
+			
 		}
 	}
 
