@@ -14,7 +14,7 @@ public class TTTClient {
 	public TTTClient() throws InterruptedException {
 		try {
 			// 远程返回一个对象
-			ttt = (TTT)Naming.lookup("rmi://localhost:8888/TTT"); ////////////改
+			ttt = (TTT)Naming.lookup("rmi://localhost:8888/TTT"); // 可以修改
 			new LoginWindow(ttt);
 			
 		} catch (MalformedURLException e) {
@@ -26,7 +26,7 @@ public class TTTClient {
 		}
 	}
 	
-	// 入口函数
+	// 客户端入口函数
 	public static void main(String[] args) throws InterruptedException {
 		new TTTClient();
 	}

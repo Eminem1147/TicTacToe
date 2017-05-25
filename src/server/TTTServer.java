@@ -7,21 +7,17 @@ public class TTTServer {
 
 	public static void main(String[] args) {
 
-		System.out.println("Main OK");
-
 		try {
 			TTT tttGame = new TTTImpl();
 
-			System.out.println("After create");
-
 			LocateRegistry.createRegistry(8888);
 
-			Naming.bind("rmi://localhost:8888/TTT", tttGame);//////////////////////改
+			Naming.bind("rmi://localhost:8888/TTT", tttGame);// 可以修改
 
 			System.out.println("TTT server ready");
 
 		} catch (Exception e) {
-			System.out.println("TTT server main " + e.getMessage());
+			e.printStackTrace();
 		}
 
 		System.out.println("Please start the client...");

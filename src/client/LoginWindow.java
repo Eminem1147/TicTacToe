@@ -21,6 +21,7 @@ import server.TTT;
 
 /*
  * 登录界面
+ * 寻找对手的时候退出，只是隐藏界面，不让用户逃避
  */
 public class LoginWindow implements ActionListener {
 	
@@ -91,7 +92,7 @@ public class LoginWindow implements ActionListener {
 		con.add(panel4);
 
 		jf.setTitle("三子棋登录界面");
-		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);		
+		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		jf.setSize(600, 400);
 		jf.setLocation(400, 200);
 		jf.setResizable(true);
@@ -126,7 +127,19 @@ public class LoginWindow implements ActionListener {
 				e1.printStackTrace();
 			}
 		} else if(e.getSource() == login) {
-			
+			// 这一步很重要！！！！！！！！！！！！！！退出只是隐藏了
+			jf.setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
+
+        	// 成功了之后设置player和远程对象
+	        player.setName(name.getText().trim());
+	        System.out.println(player.getName());
+	        try {
+		        // 在这里才能向服务器申请!!!!!!!!!!!!!!
+				ttt.setPlayerInfo(player.getName());
+			} catch (RemoteException e2) {
+				e2.printStackTrace();
+			}
+	        
 			// 这一步很重要！！！！！！！！！！！！！！！
 			// 1.因为要多次刷新界面，所以需要多线程，否则界面会卡住!!!!!!!!!!!!!!!!!!!!
 			// 2.第二个界面的刷新问题也要依靠这个方法，否则整个界面都显示不出来!!!!!!!!!!!!!!!!!
@@ -134,17 +147,6 @@ public class LoginWindow implements ActionListener {
 			new Thread(new Runnable() {
 	            @Override
 	            public void run() {
-	            	// 成功了之后设置player和远程对象
-	    	        player.setName(name.getText().trim());
-	    	        System.out.println(player.getName());
-	    	        // 在这里才能向服务器申请!!!!!!!!!!!!!!
-	    	        try {
-	    				ttt.setPlayerInfo(player.getName());
-	    			} catch (RemoteException e2) {
-	    				// TODO Auto-generated catch block
-	    				e2.printStackTrace();
-	    			}
-
 	    			login.setText("正在搜寻对手");
 	    			login.setEnabled(false);
 	    			ImageIcon icon = new ImageIcon(getClass().getResource("/img/wait.png"));
@@ -178,9 +180,5 @@ public class LoginWindow implements ActionListener {
 			
 		}
 	}
-	
-//	public static void main(String[] args) throws MalformedURLException, RemoteException, NotBoundException {
-//		new LoginWindow((TTT)Naming.lookup("rmi://localhost:8888/TTT"));
-//	}
 
 }

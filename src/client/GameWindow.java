@@ -6,6 +6,8 @@ import java.awt.Font;
 import java.awt.Image;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.rmi.RemoteException;
 
 import javax.swing.ImageIcon;
@@ -13,11 +15,8 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 
-//////////////////虚拟的对局;完全独立开发，没参考网上任何代码
-//////////////////////退出后信息要删除;和棋的情况（下满才平局）!!!!!!!!!!!
 /*
  * 游戏界面
- * 谁输了谁下一局就能先手
  * 下棋速度不能太快！！！！！！！！！不然就有bug
  */
 public class GameWindow implements ActionListener {
@@ -97,11 +96,13 @@ public class GameWindow implements ActionListener {
 		newGame.setFont(new Font("宋体", Font.BOLD, 20));
 		newGame.setBounds(390, 240, 180, 30);
 		newGame.setEnabled(false);
+		newGame.addActionListener(this);
 		jf.add(newGame);
 		
 		exit = new JButton("退出");
 		exit.setFont(new Font("宋体", Font.BOLD, 20));
 		exit.setBounds(430, 290, 90, 30);
+		exit.addActionListener(this);
 		jf.add(exit);
 		
 		dtv = new JLabel("Desktop Version");
@@ -184,36 +185,53 @@ public class GameWindow implements ActionListener {
 		win.setBounds(240, 340, 120, 50);
 		jf.add(win);
 		
-		
 		jf.setTitle("游戏界面");
-		jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		jf.setSize(600, 400);
 		jf.setLocation(400, 200);
 		jf.setResizable(false);
 		jf.setVisible(true);
 		
+		// 重要的方法：用户关闭界面前必须要执行的方法
+		jf.addWindowListener(new WindowAdapter(){
+			@Override
+			public void windowClosing(WindowEvent e) {
+				super.windowClosing(e);
+				try {
+					// 注销这个用户
+					lg.ttt.unregister(lg.player.getName());
+				} catch (RemoteException e1) {
+					e1.printStackTrace();
+				}
+			}
+		});
 	}
 	
-	// 核心代码
+	// 查询当前用户是否存在，不存在直接退出游戏
+	public void checkIsExist() throws RemoteException {
+		if(!lg.ttt.checkExist(lg.player.getName())) {
+			
+			System.exit(0);
+		}
+	}
+	
+	// 核心代码!!!!!!!!!!!!
+	// 在每个地方checkIsExist，检查对手是不是退出了
 	public void playAGame() throws RemoteException, InterruptedException {
-		
 		// 初始化代码
 		chess = new int[10];
 		for(int i = 1; i <= 9; i++) chess[i] = -1;
 		for(int i = 1; i <= 9; i++) change(b[i]);
-		yourTurn.setText("轮到对方下棋");
 		win.setText("");
 		newGame.setEnabled(false);
-		// 测试代码
-		System.out.println("我的ID：" + lg.player.getId());
-		System.out.println("我的Name：" + lg.player.getName());
-		System.out.println("我的EnemyID：" + lg.player.getEnemyId());
-		System.out.println("我的Type：" + lg.player.getType());
-		System.out.println("我的Flag：" + lg.player.getFlag());
 		
 		while(true) {
 			setNotClickable(); // 不可点击
+			checkIsExist();
 			lg.player = lg.ttt.getPlayer(lg.player.getName()); // 更新
+			// 初始化
+			if(lg.player.getFlag()) yourTurn.setText("轮到您下棋");
+			else yourTurn.setText("轮到对方下棋");
+			
 			// 初始化：圈还是叉
 			if(lg.player.getType() == 1) {
 				ImageIcon icon = new ImageIcon(getClass().getResource("/img/o.png"));
@@ -227,8 +245,10 @@ public class GameWindow implements ActionListener {
 		        first.setBackground(Color.WHITE);
 			}
 			
+			checkIsExist();
 			if(lg.player.getFlag()) {
 				yourTurn.setText("轮到您下棋");
+				checkIsExist();
 				// 下之前先接收棋盘
 				lg.player.setChess(lg.ttt.receiveMove(lg.player.getName()));
 				chess = lg.player.getChess();
@@ -238,13 +258,27 @@ public class GameWindow implements ActionListener {
 				
 				refresh(); // 刷新
 				
-				// 判断自己是不是输了
+				checkIsExist();
+				// 1.判断自己是不是输了
 				if(checkIsLose(lg.player.getChess(), lg.player.getType())) {
 					// 输了！！！！！！！！！！！！！！
 					newGame.setEnabled(true);
 					win.setText("您输了！");
-					// 把输的人本地flag置为false（为了开始新的游戏而设置）
-					lg.player.setFlag(false);
+					yourTurn.setText("游戏结束！");
+					// 不让他下棋了
+					setNotClickable();
+					// 设置比分
+					int score = Integer.parseInt(hisScore.getText());
+					score++;
+					hisScore.setText(score + "");
+					return ;
+				}
+				checkIsExist();
+				// 2.判断是否平局
+				if(checkIsDraw(lg.player.getChess())) {
+					newGame.setEnabled(true);
+					win.setText("平局了！");
+					yourTurn.setText("游戏结束！");
 					// 不让他下棋了
 					setNotClickable();
 					return ;
@@ -252,6 +286,7 @@ public class GameWindow implements ActionListener {
 				
 				// 下棋，读入需要合格所以才要while(true)
 				while(true) {
+					checkIsExist();
 					// 轮到他才能输入
 					lg.player = lg.ttt.getPlayer(lg.player.getName()); //更新
 					if(lg.player.getFlag()) {
@@ -261,6 +296,7 @@ public class GameWindow implements ActionListener {
 						int move = 1;
 						// 只能点击一个按钮
 						while(true) {
+							checkIsExist();
 							boolean flag = false;
 							for(move = 1; move <= 9; move++) {
 								if(_chess[move] != chess[move]) {
@@ -273,18 +309,40 @@ public class GameWindow implements ActionListener {
 						setNotClickable(); // 不可点击
 
 						yourTurn.setText("轮到对方下棋");
-						
+
+						checkIsExist();
 						if(checkOK(move)) {
-							// 判断自己是不是赢了，在send出去之前判断，但是不能break，要发送给那个失败的人
+							// 1.判断自己是不是赢了，在send出去之前判断，但是不能break，要发送给那个失败的人
 							boolean flag = checkIsWin(lg.player.getChess(), lg.player.getType(), move); // 赢了就要退出
 							chess = lg.ttt.getPlayer(lg.player.getName()).getChess();
 							if(flag) {
-								// 赢了！！！！！！！！！！！！！！
 								newGame.setEnabled(true);
 								win.setText("您赢了！");
+								// 设置比分
+								int score = Integer.parseInt(myScore.getText());
+								score++;
+								myScore.setText(score + "");
+								yourTurn.setText("游戏结束！");
+								checkIsExist();
+								lg.ttt.sendMove(lg.player.getName(), move);
+								// 不让他下棋了
+								setNotClickable();
+								return ;
 							}
+							// 2.判断是否平局
+							if(checkIsDrawMove(chess, move)) {
+								newGame.setEnabled(true);
+								win.setText("平局了！");
+								yourTurn.setText("游戏结束！");
+								checkIsExist();
+								lg.ttt.sendMove(lg.player.getName(), move);
+								// 不让他下棋了
+								setNotClickable();
+								return ;
+							}
+							checkIsExist();
 							lg.ttt.sendMove(lg.player.getName(), move);
-							if(flag) return ;
+							
 							break;
 						}
 					}
@@ -333,6 +391,22 @@ public class GameWindow implements ActionListener {
 		else return false;
 	}
 	
+	// 检查是否平局
+	public boolean checkIsDrawMove(int chess[], int move) {
+		for(int i = 1; i <= 9; i++) {
+			if(i == move) continue;
+			if(chess[i] == -1) return false;
+		}
+		return true;
+	}
+	public boolean checkIsDraw(int chess[]) {
+		for(int i = 1; i <= 9; i++) {
+			if(chess[i] == -1) return false;
+		}
+		return true;
+	}
+	
+	// 检查是否赢了
 	public boolean checkIsWin(int chess[], int type, int move) {
 		chess[move] = type; //当前的步骤
 		if((chess[1]==type&&chess[2]==type&&chess[3]==type)||
@@ -347,6 +421,7 @@ public class GameWindow implements ActionListener {
 		else return false;
 	}
 	
+	// 检查是否输了
 	public boolean checkIsLose(int chess[], int type) {
 		if(type == 1) type = 2;
 		else type = 1;
@@ -459,16 +534,19 @@ public class GameWindow implements ActionListener {
 			b[9].setEnabled(false);
 			chess[9] = lg.player.getType();
 		} else if(e.getSource() == newGame) {
-			System.out.println("1sadgasdgasfg");
-			new Thread(new Runnable() {
+			newGame.setEnabled(false);
+			// 界面刷新问题，需要启动一个线程
+			new Thread(new Runnable(){
 				@Override
 				public void run() {
 					// 开始了新的游戏
 					// 首先交换先后手顺序
 					try {
-						System.out.println("2sadgasdgasfg");
+						checkIsExist();
 						lg.ttt.sendNewGame(lg.player.getName());
-						lg.ttt.changeFirst(lg.player.getName(), lg.player.getFlag());
+						checkIsExist();
+						// 交换先后手，谁比分低谁下一把先手
+						lg.ttt.changeFirst(lg.player.getName());
 						playAGame();
 					} catch (RemoteException e1) {
 						e1.printStackTrace();
@@ -478,12 +556,13 @@ public class GameWindow implements ActionListener {
 				}
 			}).start();
 		} else if(e.getSource() == exit) {
-			
+			try {
+				lg.ttt.unregister(lg.player.getName());
+				System.exit(0);
+			} catch (RemoteException e1) {
+				e1.printStackTrace();
+			}
 		}
 	}
-
-//	public static void main(String[] args) {
-//		new GameWindow();
-//	}
 
 }

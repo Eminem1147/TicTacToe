@@ -17,7 +17,11 @@ public interface TTT extends Remote {
 	
 	public void sendMove(String name, int move) throws RemoteException, InterruptedException;
 	
-	public void changeFirst(String name, boolean flag) throws RemoteException;
+	public void changeFirst(String name) throws RemoteException;
 	
 	public void sendNewGame(String name) throws RemoteException;
+	
+	public void unregister(String name) throws RemoteException;
+	
+	public boolean checkExist(String name) throws RemoteException;
 }

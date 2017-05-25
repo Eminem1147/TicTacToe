@@ -19,6 +19,10 @@ public class Player implements Serializable{
 	private boolean flag;
 	// 判断用户是否想要开始新的一局
 	private boolean newGame;
+	// 比分
+	private int score;
+	// 用户是否还存在
+	private boolean exist;
 
 	public Player() {
 		super();
@@ -52,7 +56,7 @@ public class Player implements Serializable{
 
 
 
-	public Player(int id, String name, int type, int enemyId, int chess[], boolean flag, boolean newGame) {
+	public Player(int id, String name, int type, int enemyId, int chess[], boolean flag, boolean newGame, int score, boolean exist) {
 		super();
 		this.id = id;
 		this.name = name;
@@ -61,6 +65,24 @@ public class Player implements Serializable{
 		this.chess = chess;
 		this.flag = flag;
 		this.newGame = newGame;
+		this.score = score;
+		this.exist = exist;
+	}
+	
+	public boolean getExist() {
+		return exist;
+	}
+	
+	public void setExist(boolean exist) {
+		this.exist = exist;
+	}
+	
+	public int getScore() {
+		return score;
+	}
+	
+	public void setScore(int score) {
+		this.score = score;
 	}
 	
 	public boolean getNewGame() {

@@ -41,6 +41,8 @@ public class TTTImpl extends UnicastRemoteObject implements TTT {
 		for(int i = 1; i <= 9; i++) chess[i] = -1;
 		player.setChess(chess);
 		player.setNewGame(false);
+		player.setScore(0);
+		player.setExist(true);
 		players.add(player);
 		return true;
 	}
@@ -78,11 +80,8 @@ public class TTTImpl extends UnicastRemoteObject implements TTT {
 	public void searchFor(String name) throws RemoteException, InterruptedException {
 		while(true) {
 			int index = getIndex(name);
-//			System.out.println("链表现在的长度：" + players.size());
-//			System.out.println("链表里现在的元素：");
-
-			// 1.如果被动匹配到对手
-//			System.out.println(players.get(0).getEnemyId());
+			
+			// 1.如果被动匹配到对手			
 			if(players.get(index).getEnemyId() != -1) return ;
 			
 			// 遍历链表
@@ -141,30 +140,23 @@ public class TTTImpl extends UnicastRemoteObject implements TTT {
 
 	@Override
 	public void sendNewGame(String name) throws RemoteException {
-		System.out.println("newGame-----------------");
 		int index = getIndex(name);
 		players.get(index).setNewGame(true);
 	}
 
 	// 交换先后手，顺便全部重新初始化
-	// 输的人下一把先手
-	//////////////////////////////////////////////比分在这里改
+	// 谁先点击谁就是先手
 	@Override
-	public void changeFirst(String name, boolean flag) throws RemoteException {
-		System.out.println("changeFirst-----------------");
+	public void changeFirst(String name) throws RemoteException {
 		// 一个人发送了，另一个人怎么办
 		while(true) {
 			int index = getIndex(name);
-			int enemyIndex = players.get(index).getEnemyId();
+			int enemyIndex = getIndexById(players.get(index).getEnemyId());
 			// 要等待另一个人也点击开始新的游戏按钮
 			if(players.get(enemyIndex).getNewGame()) {
-				if(flag) {
-					players.get(index).setFlag(false);
-					players.get(enemyIndex).setFlag(true);
-				} else {
-					players.get(index).setFlag(true);
-					players.get(enemyIndex).setFlag(false);
-				}
+				players.get(index).setFlag(false);
+				players.get(enemyIndex).setFlag(true);
+					
 				// 棋盘初始化
 				int _chess[] = new int[10];
 				for(int i = 1; i <= 9; i++) {
@@ -172,7 +164,34 @@ public class TTTImpl extends UnicastRemoteObject implements TTT {
 				}
 				players.get(index).setChess(_chess);
 				players.get(enemyIndex).setChess(_chess);
+				
+				return ;
 			}
+		}
+	}
+
+	// 注销用户(如果有对手的话还要注销对手)
+	// remove操作不能放在这里，不然客户端就正常执行下去了
+	// 把remove操作放在checkExist里面，也方便通知另一个客户端
+	@Override
+	public void unregister(String name) throws RemoteException {
+		int index = getIndex(name);
+		players.get(index).setExist(false);
+		if(players.get(index).getEnemyId() != -1) {
+			int enemyIndex = getIndexById(players.get(index).getEnemyId());
+			players.get(enemyIndex).setExist(false);
+		}
+	}
+
+	// 用户每一个操作之前都要先执行这个方法
+	@Override
+	public boolean checkExist(String name) throws RemoteException {
+		int index = getIndex(name);
+		if(players.get(index).getExist()) {
+			return true;
+		} else {
+			players.remove(index);
+			return false;
 		}
 	}
 	
