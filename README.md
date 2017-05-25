@@ -20,3 +20,4 @@
 7. 本程序因为频繁需要更新按钮的状态，但是因为Swing的界面刷新问题不支持，所以需要多线程，详情可见我的博客：<http://blog.csdn.net/qq_33765907/article/details/72742267>
 8. 可以更改`rmi://localhost:8888/TTT`中的localhost和端口号。
 9. JavaBean-Player这个类必须序列化（即实现Serializable接口），否则无法在服务器和客户端之间传输。
+10. 两个重要的操作：sendMove和receiveMove，为了使它们正常操作互不影响，给两个用户加一把锁（类似于进程的互斥）。
