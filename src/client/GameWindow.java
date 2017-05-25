@@ -33,7 +33,7 @@ public class GameWindow implements ActionListener {
 	private JLabel _score, myScore, hisScore, vs;
 	private JLabel _first, first;
 	private JButton newGame;
-	private JButton exit; ///////////////////一个退出，另一个怎么办!!!!!!!
+	private JButton exit;
 	private JLabel dtv;
 	private JLabel _yourTurn, yourTurn;
 	private JLabel win;
@@ -545,7 +545,7 @@ public class GameWindow implements ActionListener {
 						checkIsExist();
 						lg.ttt.sendNewGame(lg.player.getName());
 						checkIsExist();
-						// 交换先后手，谁比分低谁下一把先手
+						// 交换先后手，谁先按这个按钮谁下一把先手
 						lg.ttt.changeFirst(lg.player.getName());
 						playAGame();
 					} catch (RemoteException e1) {
