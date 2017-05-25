@@ -19,3 +19,4 @@
 6. 服务器的searchFor（查找对手的方法）中有一行Thread.sleep(500);不加这一行就很容易出现bug，涉及多线程相关。（bug是当b去匹配a，可以;当a去匹配b，a被动，a就会卡死，它不知道自己已经被匹配了）
 7. 本程序因为频繁需要更新按钮的状态，但是因为Swing的界面刷新问题不支持，所以需要多线程，详情可见我的博客：<http://blog.csdn.net/qq_33765907/article/details/72742267>
 8. 可以更改`rmi://localhost:8888/TTT`中的localhost和端口号。
+9. JavaBean-Player这个类必须序列化（即实现Serializable接口），否则无法在服务器和客户端之间传输。
