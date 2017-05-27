@@ -209,7 +209,6 @@ public class GameWindow implements ActionListener {
 	// 查询当前用户是否存在，不存在直接退出游戏
 	public void checkIsExist() throws RemoteException {
 		if(!lg.ttt.checkExist(lg.player.getName())) {
-			
 			System.exit(0);
 		}
 	}

@@ -21,4 +21,4 @@
 8. 可以更改`rmi://localhost:8888/TTT`中的localhost和端口号。
 9. JavaBean-Player这个类必须序列化（即实现Serializable接口），否则无法在服务器和客户端之间传输。
 10. 两个重要的操作：sendMove和receiveMove，为了使它们正常操作互不影响，给两个用户加一把锁（类似于进程的互斥）。
-11. 所有代码在JDK8在运行成功，JDK7会有些小问题。
+11. 所有代码在JDK8在运行成功。
